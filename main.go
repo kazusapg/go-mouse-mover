@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -37,7 +38,7 @@ Loop:
 		switch mode {
 		case 1:
 			positions := recordPos()
-			intervalMilliSecond := inputIntervalMilliSecond()
+			intervalMilliSecond := inputIntervalMilliSecond(nil)
 			mi := moveInfo{Positions: positions, IntervalMillisecond: intervalMilliSecond}
 			file, err := json.MarshalIndent(mi, "", "  ")
 			if err != nil {
@@ -93,14 +94,18 @@ func recordPos() []position {
 	return positions
 }
 
-func inputIntervalMilliSecond() int {
+func inputIntervalMilliSecond(in io.Reader) int {
+	if in == nil {
+		in = os.Stdin
+	}
+
 	var waitMilliSecond int
 	for {
 		var inputMilliSecond string
 		fmt.Println("Please enter the interval in milliseconds at which the mouse moves to the next coordinate.")
 		fmt.Println("If you want to wait 1 second, enter 1000.")
 		fmt.Print(">")
-		fmt.Scan(&inputMilliSecond)
+		fmt.Fscan(in, &inputMilliSecond)
 		i, err := strconv.Atoi(inputMilliSecond)
 		if err != nil {
 			fmt.Println("The interval milliseconds must be number.")
