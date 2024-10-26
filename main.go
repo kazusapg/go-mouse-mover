@@ -74,22 +74,22 @@ Loop:
 
 func recordPos() []position {
 	var positions = []position{}
-	fmt.Println("Please mouse left click to record mouse positions.")
-	fmt.Println("To quit recording mouse positions, please enter Ctrl+Shift+q.")
+	fmt.Println("Please click the left mouse button to record mouse positions.")
+	fmt.Println("To quit recording mouse positions, press Ctrl+Shift+q.")
 
-	robotgo.EventHook(hook.KeyDown, []string{"q", "ctrl", "shift"}, func(e hook.Event) {
-		robotgo.EventEnd()
+	hook.Register(hook.KeyDown, []string{"q", "ctrl", "shift"}, func(e hook.Event) {
+		hook.End()
 	})
 
-	robotgo.EventHook(hook.MouseDown, []string{}, func(e hook.Event) {
-		x, y := robotgo.GetMousePos()
+	hook.Register(hook.MouseDown, []string{}, func(e hook.Event) {
+		x, y := robotgo.Location()
 		c := position{X: x, Y: y}
 		positions = append(positions, c)
 		fmt.Println(x, y)
 	})
 
-	s := robotgo.EventStart()
-	<-robotgo.EventProcess(s)
+	s := hook.Start()
+	<-hook.Process(s)
 
 	return positions
 }
@@ -112,7 +112,7 @@ func inputIntervalMilliSecond(in io.Reader) int {
 			continue
 		}
 		if i < 1 {
-			fmt.Println("The interval milliseconds must be greater than or equal to 1")
+			fmt.Println("The interval milliseconds must be greater than or equal to 1.")
 			continue
 		}
 		waitMilliSecond = i
@@ -122,18 +122,18 @@ func inputIntervalMilliSecond(in io.Reader) int {
 }
 
 func moveMouse(mi moveInfo) {
-	fmt.Println("Mouse moving start. To stop enter Ctrl+Shift+q.")
+	fmt.Println("The mouse starts moving. To stop moving, press Ctrl+Shift+q.")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	robotgo.EventHook(hook.KeyDown, []string{"q", "ctrl", "shift"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"q", "ctrl", "shift"}, func(e hook.Event) {
 		cancel()
-		robotgo.EventEnd()
+		hook.End()
 	})
 
 	go moveMousePosition(ctx, mi)
 
-	s := robotgo.EventStart()
-	<-robotgo.EventProcess(s)
+	s := hook.Start()
+	<-hook.Process(s)
 }
 
 func moveMousePosition(ctx context.Context, mi moveInfo) {
